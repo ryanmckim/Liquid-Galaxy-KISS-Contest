@@ -1,16 +1,19 @@
-# gsoc_pre2
+# Liquid Galaxy Preliminary Task 2 for GSoC 2024
 
-Preliminary Task 2 for GSoC 2024 Preliminary Task 2
+## UI
 
-## Getting Started
+<img width="305" alt="image" src="https://github.com/ryanmckim/GSoC_2024_Pre2/assets/72713726/109b40cc-4d4f-474f-9236-85fe2da9ff86">
 
-This project is a starting point for a Flutter application.
+## Description
 
-A few resources to get you started if this is your first Flutter project:
+A simple flutter application that:
+1) Restarts the LG rig.
+2) Moves to Vancouver, BC, Canada.
+3) Moves to Vancouver, BC, Canada and starts orbiting slowly.
+4) Displays an image that contains my name on the right VM (LG2).
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The application uses the dartssh package to connect to the LG rigs via ssh (with username, password, IP, and port) to execute commands for each options listed above. KML strings were used for the machine to move around to the locations listed for the 2nd and 3rd options above.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Compatibility
+
+Minimum Android SDK is 30 (Android 11+) and the app is configured for tablet.
