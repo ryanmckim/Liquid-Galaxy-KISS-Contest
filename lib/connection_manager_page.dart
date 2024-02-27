@@ -20,7 +20,8 @@ class _ConnectionManagerPageState extends State<ConnectionManagerPage> {
         _ipController.text,
         _usernameController.text,
         _passwordController.text,
-        _numberOfScreens.text);
+        _numberOfScreens.text,
+        _portController.text);
     _showDialog(
         result ? "Connected!" : "Connection Failed",
         result

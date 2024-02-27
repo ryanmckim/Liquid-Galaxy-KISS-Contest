@@ -6,11 +6,11 @@ class GlobalConnection {
   static int numberOfScreens = 0;
   static String clientPassword = "";
 
-  static Future<bool> connect(
-      String host, String username, String password, String screenCount) async {
+  static Future<bool> connect(String host, String username, String password,
+      String screenCount, String port) async {
     try {
       sshClient = SSHClient(
-        await SSHSocket.connect(host, 22),
+        await SSHSocket.connect(host, int.parse(port)),
         username: username,
         onPasswordRequest: () => password,
       );
