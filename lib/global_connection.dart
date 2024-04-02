@@ -5,6 +5,7 @@ class GlobalConnection {
   static SSHClient? sshClient;
   static int numberOfScreens = 0;
   static String clientPassword = "";
+  static String ip = "";
 
   static Future<bool> connect(String host, String username, String password,
       String screenCount, String port) async {
@@ -15,6 +16,7 @@ class GlobalConnection {
         onPasswordRequest: () => password,
       );
       isConnected = true;
+      ip = host;
       numberOfScreens = int.parse(screenCount);
       clientPassword = password;
       return true;
