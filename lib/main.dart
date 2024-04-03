@@ -112,16 +112,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Text('Submit Text',
                     style: TextStyle(color: Colors.white)),
               ),
-              // const SizedBox(height: 20),
-              // ElevatedButton(
-              //   onPressed: () async {
-              //     await cleanKML();
-              //     await setRefresh();
-              //   },
-              //   style: buttonStyle,
-              //   child: const Text('Clear KML',
-              //       style: TextStyle(color: Colors.white)),
-              // ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  await cleanKML();
+                  await setRefresh();
+                },
+                style: buttonStyle,
+                child: const Text('Clear KML',
+                    style: TextStyle(color: Colors.white)),
+              ),
             ],
           ),
         ),
@@ -189,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String? responseText = await callGroqApi(_text);
       if (responseText != null) {
         await createVoice(responseText);
+        await displayTextOnLG(responseText);
       }
     }
   }
@@ -219,50 +220,75 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> displayTextOnLG(String content) async {
     String kmlContent = '''
 <?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
   <Document>
-    <name>Response Display</name>
-    <Placemark>
-      <name>Response Text</name>
-      <description><![CDATA[$content]]></description>
-      <Point>
-        <coordinates>-123.1207,49.2827,0</coordinates>
-      </Point>
-    </Placemark>
+    <name>Groq-API</name>
+    <open>1</open>
+    <Folder>
+      <Style id="balloon">
+        <BalloonStyle>
+          <bgColor>ffffffff</bgColor>
+          <text><![CDATA[
+            <b><font size="+2">Response: <font color="#5D5D5D"></font></font></b>
+            <br/><br/>
+            <b>$content</b>
+          ]]></text>
+        </BalloonStyle>
+        <LabelStyle>
+          <scale>0</scale>
+        </LabelStyle>
+        <IconStyle>
+          <scale>0</scale>
+        </IconStyle>
+      </Style>
+      <Placemark>
+        <name>Groq API Response</name>
+        <styleUrl>#balloon</styleUrl>
+        <Point>
+          <gx:drawOrder>1</gx:drawOrder>
+          <gx:altitudeMode>relativeToGround</gx:altitudeMode>
+          <coordinates>-123.1207,49.2827,0</coordinates>
+        </Point>
+        <gx:balloonVisibility>1</gx:balloonVisibility>
+      </Placemark>
+    </Folder>
   </Document>
-</kml>''';
+</kml>
+''';
+
     if (GlobalConnection.isConnected && GlobalConnection.sshClient != null) {
-      await GlobalConnection.sshClient!
-          .execute("echo '''$kmlContent''' > /var/www/html/kml/display.kml");
+      int rightScreen = (GlobalConnection.numberOfScreens / 2).floor() + 1;
       await GlobalConnection.sshClient!.execute(
-          'echo "flytoview=<LookAt><longitude>-123.1207</longitude><latitude>49.2827</latitude><altitude>0</altitude><range>10000</range><tilt>0</tilt><heading>0</heading><gx:altitudeMode>relativeToGround</gx:altitudeMode></LookAt>" > /tmp/query.txt');
-      //await setRefresh();
+          "echo '$kmlContent' > /var/www/html/kml/slave_$rightScreen.kml");
     }
   }
 
-//   Future<void> cleanKML() async {
-//     if (GlobalConnection.isConnected && GlobalConnection.sshClient != null) {
-//       String kmlContent = '''
-// <?xml version="1.0" encoding="UTF-8"?>
-// <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
-//   <Document>
-//   </Document>
-// </kml>''';
+  Future<void> cleanKML() async {
+    if (GlobalConnection.isConnected && GlobalConnection.sshClient != null) {
+      String kmlContent = '''
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+  <Document>
+  </Document>
+</kml>''';
+      int rightScreen = (GlobalConnection.numberOfScreens / 2).floor() + 1;
+      await GlobalConnection.sshClient!.execute(
+          "echo '$kmlContent' > /var/www/html/kml/slave_$rightScreen.kml");
+    }
+  }
 
-//       await GlobalConnection.sshClient!
-//           .execute("echo '$kmlContent' > /var/www/html/kml/display.kml");
-//     }
-//   }
+  setRefresh() async {
+    String password = GlobalConnection.clientPassword;
+    for (var i = 2; i <= GlobalConnection.numberOfScreens; i++) {
+      String kmlFileLocation =
+          '<href>##LG_PHPIFACE##kml\\/slave_$i.kml<\\/href>';
+      String changeRefresh =
+          '<href>##LG_PHPIFACE##kml\\/slave_$i.kml<\\/href><refreshMode>onInterval<\\/refreshMode><refreshInterval>2<\\/refreshInterval>';
 
-//   setRefresh() async {
-//     String password = GlobalConnection.clientPassword;
-//     String kmlFileLocation = '<href>##LG_PHPIFACE##kml\\/display.kml<\\/href>';
-//     String changeRefresh =
-//         '<href>##LG_PHPIFACE##kml\\/display.kml<\\/href><refreshMode>onInterval<\\/refreshMode><refreshInterval>2<\\/refreshInterval>';
-
-//     await GlobalConnection.sshClient!.execute(
-//         'sshpass -p $password ssh -t lg1 \'echo $password | sudo -S sed -i "s/$changeRefresh/$kmlFileLocation/" /var/html/www/html/kml/display.kml\'');
-//     await GlobalConnection.sshClient!.execute(
-//         'sshpass -p $password ssh -t lg1 \'echo $password | sudo -S sed -i "s/$kmlFileLocation/$changeRefresh/" /var/html/www/html/kml/display.kml\'');
-//   }
+      await GlobalConnection.sshClient!.execute(
+          'sshpass -p $password ssh -t lg$i \'echo $password | sudo -S sed -i "s/$changeRefresh/$kmlFileLocation/" ~/earth/kml/slave/myplaces.kml\'');
+      await GlobalConnection.sshClient!.execute(
+          'sshpass -p $password ssh -t lg$i \'echo $password | sudo -S sed -i "s/$kmlFileLocation/$changeRefresh/" ~/earth/kml/slave/myplaces.kml\'');
+    }
+  }
 }
